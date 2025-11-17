@@ -1,0 +1,21 @@
+{
+  "name": "OpenRouter Chat PWA",
+  "short_name": "ORChat",
+  "description": "Chat with OpenRouter AI models using voice and file uploads",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "vite.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "vite.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
