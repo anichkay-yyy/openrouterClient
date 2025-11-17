@@ -30,6 +30,7 @@ const Chat: React.FC<ChatProps> = ({ token, onLogout }) => {
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const [pendingImage, setPendingImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const currentAssistantId = useRef<string | null>(null)
 
   useEffect(() => {
     fetchModels()
@@ -90,32 +91,36 @@ const Chat: React.FC<ChatProps> = ({ token, onLogout }) => {
 
     abortControllerRef.current = new AbortController()
 
-    try {
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: '',
-        timestamp: new Date()
-      }
-      setMessages(prev => [...prev, assistantMessage])
+    const assistantId = (Date.now() + 1).toString()
+    currentAssistantId.current = assistantId
 
+    const assistantMessage: Message = {
+      id: assistantId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date()
+    }
+    setMessages(prev => [...prev, assistantMessage])
+
+    try {
       for await (const chunk of streamChat(token, apiMessages, { model: currentModel, abortSignal: abortControllerRef.current!.signal })) {
         setMessages(prev => prev.map(msg =>
-          msg.id === assistantMessage.id
-            ? { ...msg, content: msg.content + chunk }
+          msg.id === currentAssistantId.current
+            ? { ...msg, content: (msg.content as string) + chunk }
             : msg
         ))
       }
     } catch (error) {
       console.error('Chat error:', error)
       setMessages(prev => prev.map(msg =>
-        msg.id === assistantMessage.id
-          ? { ...msg, content: msg.content || 'Error: ' + (error as Error).message }
+        msg.id === currentAssistantId.current
+          ? { ...msg, content: (msg.content as string) || 'Error: ' + (error as Error).message }
           : msg
       ))
     } finally {
       setIsLoading(false)
       abortControllerRef.current = null
+      currentAssistantId.current = null
     }
   }, [input, isLoading, currentModel, messages, token, pendingImage])
 
